@@ -42,9 +42,10 @@ class Trainer:
     ):
         # Get the device placement and make data loaders
         self.device = device
+        print(f"Using device: {self.device}")
         kwargs = {"num_workers": 1, "pin_memory": True} if device == "cuda" else {}
-        self.train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=batch_size, **kwargs)
-        self.val_loader = torch.utils.data.DataLoader(self.val_data, batch_size=batch_size, **kwargs)
+        self.train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=batch_size,generator = torch.Generator(device=device),**kwargs)
+        self.val_loader = torch.utils.data.DataLoader(self.val_data, batch_size=batch_size,generator = torch.Generator(device=device), **kwargs)
 
         self.optimizer = optimizer(model.parameters(), lr=lr, weight_decay=weight_decay)
         self.loss_fn = loss_fn
@@ -94,7 +95,7 @@ class Trainer:
                     "loss_fn": self.loss_fn,
                     "history": self.history,
                 }
-                torch.save(checkpoint_data, self.checkpoint_name)
+                torch.save(checkpoint_data, f'{self.checkpoint_name}_shobhit')
 
         return self.history
 
@@ -164,35 +165,36 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
 
     # Datasets
-    ap.add_argument("--clean_train_path", required=True)
-    ap.add_argument("--clean_val_path", required=True)
-    ap.add_argument("--noise_train_path", required=True)
-    ap.add_argument("--noise_val_path", required=True)
-    ap.add_argument("--keep_rate", default=1.0, type=float)
+    ap.add_argument("--clean_train_path",default= "/datasets/Train/cleanSliced" )
+    ap.add_argument("--clean_val_path",default = "/datasets/Validation/cleanSliced")
+    ap.add_argument("--noise_train_path",default = "/datasets/Train/noisySliced")
+    ap.add_argument("--noise_val_path",default = "/datasets/Validation/noisySliced")
+    ap.add_argument("--keep_rate", default=0.8, type=float)
 
     # Model checkpoint
-    ap.add_argument("--model", choices=["UNet", "UNetDNP", "ConvTasNet", "TransUNet", "SepFormer"])
-    ap.add_argument("--checkpoint_name", required=True, help="File with .tar extension")
+    ap.add_argument("--model",default="ConvTasNet", choices=["UNet", "UNetDNP", "ConvTasNet", "TransUNet", "SepFormer"])
+    ap.add_argument("--checkpoint_name", default= "doesntExist.tar",help="File with .tar extension")
 
     # Training params
-    ap.add_argument("--epochs", default=10, type=int)
+    ap.add_argument("--epochs", default=100, type=int)
     ap.add_argument("--batch_size", default=16, type=int)
     ap.add_argument("--lr", default=1e-4, type=float)
     ap.add_argument("--gradient_clipping", action="store_true")
 
     # GPU setup
-    ap.add_argument("--gpu", default="-1")
+    # ap.add_argument("--gpu", default="-1")
+    # ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
 
     args = ap.parse_args()
 
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # see issue #152
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # see issue #152
+    # os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
-    visible_devices = list(map(lambda x: int(x), args.gpu.split(",")))
-    print("Visible devices:", visible_devices)
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device} ({args.gpu})")
+    # visible_devices = list(map(lambda x: int(x), args.gpu.split(",")))
+    # print("Visible devices:", visible_devices)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    torch.set_default_tensor_type('torch.cuda.FloatTensor' if torch.cuda.is_available() else 'torch.FloatTensor')
+    print(f"Using device: {device}")
 
     # from torchaudio.models import ConvTasNet
 

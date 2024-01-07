@@ -31,8 +31,8 @@ def process_file(input_filename, output_filename, target_sr):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dataset_path", required=True)
-    ap.add_argument("--resampled_path", required=True)
+    ap.add_argument("--dataset_path", default="/datasets/Train/noisy")
+    ap.add_argument("--resampled_path", default="/datasets/Train/noisyResampled")
     ap.add_argument("--target_sr", default=16000, type=int)
     args = ap.parse_args()
 

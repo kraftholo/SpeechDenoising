@@ -99,12 +99,13 @@ def predict_waveform(audio, sr, length_seconds, model):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     # Input and Output
-    ap.add_argument("-i", "--input", required=True)
-    ap.add_argument("-o", "--output", required=True)
+    filepath = "/datasets/Test/19-198-0010"
+    ap.add_argument("-i", "--input", default=f'{filepath}.wav')
+    ap.add_argument("-o", "--output", default=f'{filepath}(denoised).wav')
 
     # Model to use
-    ap.add_argument("--model", choices=["UNet", "UNetDNP", "ConvTasNet", "TransUNet", "SepFormer"])
-    ap.add_argument("--checkpoint_name", required=True, help="File with .tar extension")
+    ap.add_argument("--model", default = "ConvTasNet",choices=["UNet", "UNetDNP", "ConvTasNet", "TransUNet", "SepFormer"])
+    ap.add_argument("--checkpoint_name", default="/doesntExist.tar", help="File with .tar extension")
 
     # Data parameters
     ap.add_argument("--length_seconds", default=4, type=int)
@@ -114,15 +115,16 @@ if __name__ == "__main__":
     ap.add_argument("--gpu", default="-1")
     args = ap.parse_args()
 
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # see issue #152
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # see issue #152
+    # os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
-    visible_devices = list(map(lambda x: int(x), args.gpu.split(",")))
-    print("Visible devices:", visible_devices)
+    # visible_devices = list(map(lambda x: int(x), args.gpu.split(",")))
+    # print("Visible devices:", visible_devices)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device} ({args.gpu})")
+    print(f"Using device: {device}")
 
+    device = "cpu"
 
     # Get the model
     training_utils_dict = get_model(args.model)
